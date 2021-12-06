@@ -119,7 +119,7 @@ type SDC struct {
 			CreationDate               string   `json:"CreationDate"`
 		} `json:"BusinessPartner"`
 	} `json:"Equipment"`
-	APISchema     string `json:"api_schema"`
-	Equipment     string `json:"equipment_code"`
-	Deleted       bool   `json:"deleted"`
+	APISchema      string `json:"api_schema"`
+	EquipmentCode  string `json:"equipment_code"`
+	Deleted        bool   `json:"deleted"`
 }
