@@ -2,7 +2,7 @@ package main
 
 import (
 	sap_api_caller "sap-api-integrations-equipment-master-reads/SAP_API_Caller"
-	"sap-api-integrations-planned-equipment-master-reads/sap_api_input_reader"
+	"sap-api-integrations-equipment-master-reads/sap_api_input_reader"
 
 	"github.com/latonaio/golang-logging-library/logger"
 )
@@ -15,8 +15,7 @@ func main() {
 		"https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/", l,
 	)
 
-    caller.AsyncGetEquipmentMaster(
-        inoutSDC.Equipment.Equipment,
-        inoutSDC.Equipment.ValidityEndDate,
-    )
+	caller.AsyncGetEquipment(
+		inoutSDC.Equipment.Equipment,
+	)
 }

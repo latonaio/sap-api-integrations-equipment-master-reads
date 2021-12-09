@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	sap_api_output_formatter "sap-api-integrations-equipment-master-reads/SAP_API_Output_Formatter"
 	"strings"
 	"sync"
 
 	"github.com/latonaio/golang-logging-library/logger"
+	"golang.org/x/xerrors"
 )
 
 type SAPAPICaller struct {
@@ -24,86 +26,79 @@ func NewSAPAPICaller(baseUrl string, l *logger.Logger) *SAPAPICaller {
 	}
 }
 
-func (c *SAPAPICaller) AsyncGetEquipment(Equipment, ValidityEndDate string) {
+func (c *SAPAPICaller) AsyncGetEquipment(Equipment string) {
 	wg := &sync.WaitGroup{}
 
-	wg.Add(2)
-	go func() {
-		c.Equipment(Equipment, ValidityEndDate)
-		wg.Done()
-	}()
-	go func() {
-		c.BusinessPartner(Equipment, ValidityEndDate)
+	wg.Add(1)
+	func() {
+		c.Equipment(Equipment)
 		wg.Done()
 	}()
 	wg.Wait()
 }
 
-func (c *SAPAPICaller) Equipment(Equipment, ValidityEndDate string) {
-	res, err := c.callEquipmentSrvAPIRequirement("Equipment", Equipment, ValidityEndDate)
+func (c *SAPAPICaller) Equipment(Equipment string) {
+	equipmentData, err := c.callEquipmentSrvAPIRequirementEquipment("Equipment", Equipment)
 	if err != nil {
 		c.log.Error(err)
 		return
 	}
+	c.log.Info(equipmentData)
 
-	c.log.Info(res)
-
-}
-
-func (c *SAPAPICaller) BusinessPartner(Equipment, ValidityEndDate string) {
-	res, err := c.callEquipmentSrvAPIRequirementBusinessPartner("Equipment(Equipment='{Equipment}',ValidityEndDate=datetime'{ValidityEndDate}')/to_Partner", Equipment, ValidityEndDate)
+	partnerData, err := c.callToPartner(equipmentData[0].ToPartner)
 	if err != nil {
 		c.log.Error(err)
 		return
 	}
-
-	c.log.Info(res)
-
+	c.log.Info(partnerData)
 }
 
-
-func (c *SAPAPICaller) callEquipmentSrvAPIRequirement(api, Equipment, ValidityEndDate string) ([]byte, error) {
+func (c *SAPAPICaller) callEquipmentSrvAPIRequirementEquipment(api, Equipment string) ([]sap_api_output_formatter.Equipment, error) {
 	url := strings.Join([]string{c.baseURL, "API_EQUIPMENT", api}, "/")
 	req, _ := http.NewRequest("GET", url, nil)
 
-	params := req.URL.Query()
-	// params.Add("$select", "Equipment, ValidityEndDate")
-	params.Add("$filter", fmt.Sprintf("Equipment eq '%s' and ValidityEndDate eq '%s'", Equipment, ValidityEndDate))
-	req.URL.RawQuery = params.Encode()
+	c.setHeaderAPIKeyAccept(req)
+	c.getQueryWithEquipment(req, Equipment)
 
-	req.Header.Set("APIKey", c.apiKey)
-	req.Header.Set("Accept", "application/json")
-
-	client := new(http.Client)
-	resp, err := client.Do(req)
+	resp, err := new(http.Client).Do(req)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("API request error: %w", err)
 	}
 	defer resp.Body.Close()
 
 	byteArray, _ := ioutil.ReadAll(resp.Body)
-	return byteArray, nil
+	data, err := sap_api_output_formatter.ConvertToEquipment(byteArray, c.log)
+	if err != nil {
+		return nil, xerrors.Errorf("convert error: %w", err)
+	}
+	return data, nil
 }
 
-func (c *SAPAPICaller) callEquipmentSrvAPIRequirementBusinessPartner(api, Equipment, ValidityEndDate string) ([]byte, error) {
-	url := strings.Join([]string{c.baseURL, "API_EQUIPMENT", api}, "/")
+func (c *SAPAPICaller) callToPartner(url string) (*sap_api_output_formatter.ToPartner, error) {
 	req, _ := http.NewRequest("GET", url, nil)
+	c.setHeaderAPIKeyAccept(req)
 
-	params := req.URL.Query()
-	// params.Add("$select", "Equipment, ValidityEndDate")
-	params.Add("$filter", fmt.Sprintf("Equipment eq '%s' and ValidityEndDate eq '%s'", Equipment, ValidityEndDate))
-	req.URL.RawQuery = params.Encode()
-
-	req.Header.Set("APIKey", c.apiKey)
-	req.Header.Set("Accept", "application/json")
-
-	client := new(http.Client)
-	resp, err := client.Do(req)
+	resp, err := new(http.Client).Do(req)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("API request error: %w", err)
 	}
 	defer resp.Body.Close()
 
 	byteArray, _ := ioutil.ReadAll(resp.Body)
-	return byteArray, nil
+	data, err := sap_api_output_formatter.ConvertToToPartner(byteArray, c.log)
+	if err != nil {
+		return nil, xerrors.Errorf("convert error: %w", err)
+	}
+	return data, nil
+}
+
+func (c *SAPAPICaller) setHeaderAPIKeyAccept(req *http.Request) {
+	req.Header.Set("APIKey", c.apiKey)
+	req.Header.Set("Accept", "application/json")
+}
+
+func (c *SAPAPICaller) getQueryWithEquipment(req *http.Request, Equipment string) {
+	params := req.URL.Query()
+	params.Add("$filter", fmt.Sprintf("Equipment eq '%s'", Equipment))
+	req.URL.RawQuery = params.Encode()
 }

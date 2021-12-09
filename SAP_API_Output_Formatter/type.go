@@ -60,13 +60,14 @@ type Equipment struct {
 	EquipmentIsAvailable          bool   `json:"EquipmentIsAvailable"`
 	EquipmentIsInstalled          bool   `json:"EquipmentIsInstalled"`
 	EquipIsAllocToSuperiorEquip   bool   `json:"EquipIsAllocToSuperiorEquip"`
-	EquipHasSubOrdinateEquipment  bool   `json:"EquipHasSubOrdinateEquipment"`
+	EquipHasSubOrdinateEquipment  string `json:"EquipHasSubOrdinateEquipment"`
 	CreationDate                  string `json:"CreationDate"`
 	LastChangeDateTime            string `json:"LastChangeDateTime"`
 	EquipmentIsMarkedForDeletion  bool   `json:"EquipmentIsMarkedForDeletion"`
+	ToPartner                     string `json:"to_Partner"`
 }
 
-type BusinessPartner struct {
+type ToPartner struct {
 	Equipment                  string `json:"Equipment"`
 	BusinessPartner            string `json:"BusinessPartner"`
 	PartnerFunction            string `json:"PartnerFunction"`
