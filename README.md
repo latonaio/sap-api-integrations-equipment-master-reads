@@ -24,12 +24,12 @@ sap-api-integrations-equipment-master-reads が対応する APIサービス は�
 ## 本レポジトリ に 含まれる API名
 sap-api-integrations-equipment-master-reads には、次の API をコールするためのリソースが含まれています。  
 
-* Equipment（設備マスタ）
-* Equipment(Equipment='{Equipment}',ValidityEndDate=datetime'{ValidityEndDate}')/to_Partner（設備マスタ - パートナー）
+* Equipment（設備マスタ - マスタデータ）※設備マスタのパートナーデータを取得するために、ToPartner、と合わせて利用されます。
+* ToPartner（設備マスタ - パートナーデータ）
 
 ## API への 値入力条件 の 初期値
 sap-api-integrations-equipment-master-reads において、API への値入力条件の初期値は、入力ファイルレイアウトの種別毎に、次の通りとなっています。  
 
 ### SDC レイアウト
 
-* inoutSDC.Equipment.ValidityEndDate（有効終了日）
+* inoutSDC.Equipment.Equipment（設備番号）
