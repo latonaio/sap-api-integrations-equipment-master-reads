@@ -26,19 +26,26 @@ func NewSAPAPICaller(baseUrl string, l *logger.Logger) *SAPAPICaller {
 	}
 }
 
-func (c *SAPAPICaller) AsyncGetEquipment(Equipment string) {
+func (c *SAPAPICaller) AsyncGetEquipment(equipment string, accepter []string) {
 	wg := &sync.WaitGroup{}
+	wg.Add(len(accepter))
+	for _, fn := range accepter {
+		switch fn {
+		case "Equipment":
+			func() {
+				c.Equipment(equipment)
+				wg.Done()
+			}()
+		default:
+			wg.Done()
+		}
+	}
 
-	wg.Add(1)
-	func() {
-		c.Equipment(Equipment)
-		wg.Done()
-	}()
 	wg.Wait()
 }
 
-func (c *SAPAPICaller) Equipment(Equipment string) {
-	equipmentData, err := c.callEquipmentSrvAPIRequirementEquipment("Equipment", Equipment)
+func (c *SAPAPICaller) Equipment(equipment string) {
+	equipmentData, err := c.callEquipmentSrvAPIRequirementEquipment("Equipment", equipment)
 	if err != nil {
 		c.log.Error(err)
 		return
@@ -53,12 +60,12 @@ func (c *SAPAPICaller) Equipment(Equipment string) {
 	c.log.Info(partnerData)
 }
 
-func (c *SAPAPICaller) callEquipmentSrvAPIRequirementEquipment(api, Equipment string) ([]sap_api_output_formatter.Equipment, error) {
+func (c *SAPAPICaller) callEquipmentSrvAPIRequirementEquipment(api, equipment string) ([]sap_api_output_formatter.Equipment, error) {
 	url := strings.Join([]string{c.baseURL, "API_EQUIPMENT", api}, "/")
 	req, _ := http.NewRequest("GET", url, nil)
 
 	c.setHeaderAPIKeyAccept(req)
-	c.getQueryWithEquipment(req, Equipment)
+	c.getQueryWithEquipment(req, equipment)
 
 	resp, err := new(http.Client).Do(req)
 	if err != nil {
@@ -97,8 +104,8 @@ func (c *SAPAPICaller) setHeaderAPIKeyAccept(req *http.Request) {
 	req.Header.Set("Accept", "application/json")
 }
 
-func (c *SAPAPICaller) getQueryWithEquipment(req *http.Request, Equipment string) {
+func (c *SAPAPICaller) getQueryWithEquipment(req *http.Request, equipment string) {
 	params := req.URL.Query()
-	params.Add("$filter", fmt.Sprintf("Equipment eq '%s'", Equipment))
+	params.Add("$filter", fmt.Sprintf("Equipment eq '%s'", equipment))
 	req.URL.RawQuery = params.Encode()
 }

@@ -120,6 +120,7 @@ type SDC struct {
 		} `json:"BusinessPartner"`
 	} `json:"Equipment"`
 	APISchema     string `json:"api_schema"`
+	Accepter    []string `json:"accepter"`
 	EquipmentCode string `json:"equipment_code"`
 	Deleted       bool   `json:"deleted"`
 }
