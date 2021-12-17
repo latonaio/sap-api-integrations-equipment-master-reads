@@ -86,7 +86,19 @@ func (c *SAPAPICaller) AsyncGetEquipment(equipment string, accepter []string) {
 
 	wg.Wait()
 }
-
 ```
 
+## Output  
+本マイクロサービスでは、[golang-logging-library](https://github.com/latonaio/golang-logging-library) により、以下のようなデータがJSON形式で出力されます。  
+以下の sample.json の例は、SAP　設備マスタ の マスタデータ　が取得された結果の JSON の例です。  
+以下の項目のうち、"Equipment" ～ "ValidityEndDate=datetime" は、/SAP_API_Output_Formatter/type.go 内 の Type Product {} による出力結果です。"cursor" ～ "time"は、golang-logging-library による 定型フォーマットの出力結果です。  
 
+```
+{
+	"cursor": "/Users/latona2/bitbucket/sap-api-integrations-equipment-master-reads/SAP_API_Caller/caller.go#L46",
+	"function": "sap-api-integrations-equipment-master-reads/SAP_API_Caller.(*SAPAPICaller).Equipment",
+	"level": "INFO",
+	"message": "[{Equipment:10000000 ValidityEndDate:/Date(253402214400000)/ ValidityEndTime:PT00H00M00S ValidityStartDate:/Date(1492041600000)/ EquipmentName:FIN226,MTO,PD,Batch-Fifo,SerialNo EquipmentCategory:X TechnicalObjectType: GrossWeight:7.400 GrossWeightUnit:KG SizeOrDimensionText: InventoryNumber: OperationStartDate: AcquisitionValue:0.00 Currency: AcquisitionDate: AssetManufacturerName: ManufacturerPartTypeName: ManufacturerCountry: ConstructionYear: ConstructionMonth: ManufacturerPartNmbr: ManufacturerSerialNumber: MaintenancePlant: AssetLocation: AssetRoom: PlantSection: WorkCenter: WorkCenterPlant: CompanyCode: BusinessArea: MasterFixedAsset: FixedAsset: CostCenter: WBSElementExternalID: SettlementOrder: MaintenancePlanningPlant: MaintenancePlannerGroup: MainWorkCenter: MainWorkCenterPlant: CatalogProfile: FunctionalLocation: SuperordinateEquipment: EquipInstallationPositionNmbr: TechnicalObjectSortCode: ConstructionMaterial:FG226 Material:FG226 EquipmentIsAvailable:false EquipmentIsInstalled:false EquipIsAllocToSuperiorEquip:false EquipHasSubOrdinateEquipment: CreationDate:/Date(1492041600000)/ LastChangeDateTime: EquipmentIsMarkedForDeletion:false ToPartner:https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/API_EQUIPMENT/Equipment(Equipment='10000000',ValidityEndDate=datetime'9999-12-31T00%3A00%3A00')/to_Partner}]",
+	"time": "2021-12-09T17:56:44.497865+09:00"
+}
+```
