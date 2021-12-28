@@ -26,7 +26,7 @@ func NewSAPAPICaller(baseUrl string, l *logger.Logger) *SAPAPICaller {
 	}
 }
 
-func (c *SAPAPICaller) AsyncGetEquipment(equipment string, accepter []string) {
+func (c *SAPAPICaller) AsyncGetEquipment(equipment, equipmentName string, accepter []string) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(accepter))
 	for _, fn := range accepter {
@@ -34,6 +34,11 @@ func (c *SAPAPICaller) AsyncGetEquipment(equipment string, accepter []string) {
 		case "Equipment":
 			func() {
 				c.Equipment(equipment)
+				wg.Done()
+			}()
+		case "EquipmentName":
+			func() {
+				c.EquipmentName(equipmentName)
 				wg.Done()
 			}()
 		default:
@@ -99,6 +104,37 @@ func (c *SAPAPICaller) callToPartner(url string) (*sap_api_output_formatter.ToPa
 	return data, nil
 }
 
+func (c *SAPAPICaller) EquipmentName(equipmentName string) {
+	data, err := c.callEquipmentSrvAPIRequirementEquipmentName("Equipment", equipmentName)
+	if err != nil {
+		c.log.Error(err)
+		return
+	}
+	c.log.Info(data)
+
+}
+
+func (c *SAPAPICaller) callEquipmentSrvAPIRequirementEquipmentName(api, equipment string) ([]sap_api_output_formatter.Equipment, error) {
+	url := strings.Join([]string{c.baseURL, "API_EQUIPMENT", api}, "/")
+	req, _ := http.NewRequest("GET", url, nil)
+
+	c.setHeaderAPIKeyAccept(req)
+	c.getQueryWithEquipmentName(req, equipmentName)
+
+	resp, err := new(http.Client).Do(req)
+	if err != nil {
+		return nil, xerrors.Errorf("API request error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	byteArray, _ := ioutil.ReadAll(resp.Body)
+	data, err := sap_api_output_formatter.ConvertToEquipment(byteArray, c.log)
+	if err != nil {
+		return nil, xerrors.Errorf("convert error: %w", err)
+	}
+	return data, nil
+}
+
 func (c *SAPAPICaller) setHeaderAPIKeyAccept(req *http.Request) {
 	req.Header.Set("APIKey", c.apiKey)
 	req.Header.Set("Accept", "application/json")
@@ -107,5 +143,11 @@ func (c *SAPAPICaller) setHeaderAPIKeyAccept(req *http.Request) {
 func (c *SAPAPICaller) getQueryWithEquipment(req *http.Request, equipment string) {
 	params := req.URL.Query()
 	params.Add("$filter", fmt.Sprintf("Equipment eq '%s'", equipment))
+	req.URL.RawQuery = params.Encode()
+}
+
+func (c *SAPAPICaller) getQueryWithEquipmentName(req *http.Request, equipmentName string) {
+	params := req.URL.Query()
+	params.Add("$filter", fmt.Sprintf("substringof('%s', EquipmentName)", equipmentName))
 	req.URL.RawQuery = params.Encode()
 }

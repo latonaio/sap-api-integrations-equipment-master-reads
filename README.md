@@ -33,6 +33,7 @@ sap-api-integrations-equipment-master-reads において、API への値入力�
 ### SDC レイアウト
 
 * inoutSDC.Equipment.Equipment（設備番号）
+* inoutSDC.Equipment.EquipmentName（設備名称）
 
 ## SAP API Bussiness Hub の API の選択的コール
 
@@ -68,8 +69,7 @@ accepter における データ種別 の指定に基づいて SAP_API_Caller �
 caller.go の func() の 以下の箇所が、指定された API をコールするソースコードです。  
 
 ```
-
-func (c *SAPAPICaller) AsyncGetEquipment(equipment string, accepter []string) {
+func (c *SAPAPICaller) AsyncGetEquipment(equipment, equipmentName string, accepter []string) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(accepter))
 	for _, fn := range accepter {
@@ -77,6 +77,11 @@ func (c *SAPAPICaller) AsyncGetEquipment(equipment string, accepter []string) {
 		case "Equipment":
 			func() {
 				c.Equipment(equipment)
+				wg.Done()
+			}()
+		case "EquipmentName":
+			func() {
+				c.EquipmentName(equipmentName)
 				wg.Done()
 			}()
 		default:
@@ -91,7 +96,7 @@ func (c *SAPAPICaller) AsyncGetEquipment(equipment string, accepter []string) {
 ## Output  
 本マイクロサービスでは、[golang-logging-library](https://github.com/latonaio/golang-logging-library) により、以下のようなデータがJSON形式で出力されます。  
 以下の sample.json の例は、SAP　設備マスタ の マスタデータ　が取得された結果の JSON の例です。  
-以下の項目のうち、"Equipment" ～ "ValidityEndDate=datetime" は、/SAP_API_Output_Formatter/type.go 内 の Type Product {} による出力結果です。"cursor" ～ "time"は、golang-logging-library による 定型フォーマットの出力結果です。  
+以下の項目のうち、"Equipment" ～ "ValidityEndDate=datetime" は、/SAP_API_Output_Formatter/type.go 内 の Type Equipment {} による出力結果です。"cursor" ～ "time"は、golang-logging-library による 定型フォーマットの出力結果です。  
 
 ```
 {

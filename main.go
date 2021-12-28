@@ -18,12 +18,13 @@ func main() {
 	accepter := inoutSDC.Accepter
 	if len(accepter) == 0 || accepter[0] == "All" {
 		accepter = []string{
-			"Equipment",
+			"Equipment", "EquipmentName",
 		}
 	}
 
 	caller.AsyncGetEquipment(
 		inoutSDC.Equipment.Equipment,
+		inoutSDC.Equipment.EquipmentName,
 		accepter,
 	)
 }
