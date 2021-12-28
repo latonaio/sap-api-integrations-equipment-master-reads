@@ -114,7 +114,7 @@ func (c *SAPAPICaller) EquipmentName(equipmentName string) {
 
 }
 
-func (c *SAPAPICaller) callEquipmentSrvAPIRequirementEquipmentName(api, equipment string) ([]sap_api_output_formatter.Equipment, error) {
+func (c *SAPAPICaller) callEquipmentSrvAPIRequirementEquipmentName(api, equipmentName string) ([]sap_api_output_formatter.Equipment, error) {
 	url := strings.Join([]string{c.baseURL, "API_EQUIPMENT", api}, "/")
 	req, _ := http.NewRequest("GET", url, nil)
 
